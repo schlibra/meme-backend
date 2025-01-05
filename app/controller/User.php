@@ -192,10 +192,12 @@ class User extends BaseController {
     #[ApiDoc\Param("email", type: "string", require: true, desc: "邮箱")]
     function sendCode(Request $request): Json {
         $action = $request->post("action");
+        $setting = getSetting();
+        $siteName = $setting["siteName"];
         $actionText = match ($action) {
-            "register" => "注册IURT meme 2.0账号",
-            "forget" => "重置IURT meme 2.0密码",
-            "verify" => "验证IURT meme 2.0邮箱",
+            "register" => "注册$siteName 2.0账号",
+            "forget" => "重置$siteName 2.0密码",
+            "verify" => "验证$siteName 2.0邮箱",
             default => ""
         };
         $actionShort = match ($action) {
@@ -212,13 +214,13 @@ class User extends BaseController {
                 $mail = new PHPMailer(true);
                 $mail->SMTPDebug = SMTP::DEBUG_OFF;
                 $mail->isSMTP();
-                $mail->Host = env("SMTP_HOST", "");
+                $mail->Host = $setting["smtpHost"];
                 $mail->SMTPAuth = true;
-                $mail->Username = env("SMTP_USERNAME", "");
-                $mail->Password = env("SMTP_PASSWORD", "");
-                $mail->SMTPSecure = env("SMTP_SECURE", "");
-                $mail->Port = env("SMTP_PORT", 25);
-                $mail->setFrom(env("SMTP_USERNAME"), "IURT meme");
+                $mail->Username = $setting["smtpUsername"];
+                $mail->Password = $setting["smtpPassword"];
+                $mail->SMTPSecure = $setting["smtpEncrypt"];
+                $mail->Port = $setting["smtpPort"];
+                $mail->setFrom($setting["smtpUsername"], $siteName);
                 $mail->addAddress($email);
                 $mail->isHTML(true);
                 $mail->Subject = "{$actionText}验证码";

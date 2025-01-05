@@ -7,6 +7,7 @@ use app\model\BasicModel;
 use app\model\SecurityModel;
 use app\model\ThirdPartyModel;
 use app\Request;
+use think\exception\ErrorException;
 use think\Response;
 use think\response\Json;
 use think\validate\ValidateRule;
@@ -16,9 +17,13 @@ class Index extends BaseController
     function index(Request$request): string|Json {
         if ($request->isGet()) {
             if ($request->cookie("dev") === "Y") {
-                $view = file_get_contents("http://localhost:5173/");
-                $view = str_replace("<meta name=\"baseurl\" />", "<base href=\"http://{$request->host(true)}:5173/\" />", $view);
-                $view = str_replace("<script type=\"module\" src=\"/@id/virtual:vue-devtools-path:overlay.js\"></script>", "", $view);
+                try {
+                    $view = file_get_contents("http://localhost:5173/");
+                    $view = str_replace("<meta name=\"baseurl\" />", "<base href=\"http://{$request->host(true)}:5173/\" />", $view);
+                    $view = str_replace("<script type=\"module\" src=\"/@id/virtual:vue-devtools-path:overlay.js\"></script>", "", $view);
+                } catch (ErrorException) {
+                    $view = file_get_contents(root_path() . "view/dist/index.html");
+                }
             } else {
                 $view = file_get_contents(root_path() . "view/dist/index.html");
             }
@@ -47,10 +52,10 @@ class Index extends BaseController
             "N" => "!1",
         ];
         $REPLACE = [
-            "[\"IURT meme 2.0\"]" => "[\"{$setting["siteName"]}\"]",
+            "[\"Site Name 2.0\"]" => "[\"{$setting["siteName"]}\"]",
             "!0,\"enableHomeType\"" => $bool[$setting["enableHomeTyping"]],
             "!1,\"enableHomeType\"" => $bool[$setting["enableHomeTyping"]],
-            "[\"IURT memes 2.0\",\"Home Title\"][0]" => "[\"{$setting["siteName"]}\",\"Home Title\"][0]",
+            "[\"Site Name 2.0\",\"Home Title\"][0]" => "[\"{$setting["siteName"]}\",\"Home Title\"][0]",
         ];
         $filename = $request->url();
         $filepath = root_path() . "view/dist/$filename";
